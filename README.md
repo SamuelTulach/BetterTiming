@@ -1,6 +1,8 @@
 # BetterTiming
 This is a small project of mine aiming to improve CPU timing in KVM SVM implementation to bypass certain anti-VM checks. It registers VM-exit for RDTSC instruction and then tries to offset it by the time spend in specified VM-exits.
 
+![screenshot](screenshot.png)
+
 **Disclaimer:** Testing was done only in an isolated environment. Doing such a change might introduce unwanted side effects to the guest OS.
 
 ## How to apply the patch
