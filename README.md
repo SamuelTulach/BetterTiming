@@ -40,7 +40,7 @@ static int vcpu_enter_guest(struct kvm_vcpu *vcpu)
 
 	result = vcpu_enter_guest_real(vcpu);
 
-	if (vcpu->run->exit_reason == 69) 
+	if (vcpu->run->exit_reason == 123) 
 	{
 		differece = rdtsc() - vcpu->last_exit_start;
 		vcpu->total_exit_time += differece;
@@ -53,16 +53,16 @@ Added a VM-exit handler for RDTSC instruction which takes those values.
 ```
 static int handle_rdtsc_interception(struct vcpu_svm *svm) 
 {
-	u64 differece;
-	u64 final_time;
-	u64 data;
+    u64 differece;
+    u64 final_time;
+    u64 data;
 	
-	differece = rdtsc() - svm->vcpu.last_exit_start;
-	final_time = svm->vcpu.total_exit_time + differece;
+    differece = rdtsc() - svm->vcpu.last_exit_start;
+    final_time = svm->vcpu.total_exit_time + differece;
 
-	data = rdtsc() - final_time;
+    data = rdtsc() - final_time;
 
-	svm->vcpu.run->exit_reason = 123;
+    svm->vcpu.run->exit_reason = 123;
     svm->vcpu.arch.regs[VCPU_REGS_RAX] = data & -1u;
     svm->vcpu.arch.regs[VCPU_REGS_RDX] = (data >> 32) & -1u;
 

@@ -54,7 +54,7 @@ diff -ruN linux-5.7.11/arch/x86/kvm/svm/svm.c linux-5.7.11_patched/arch/x86/kvm/
  static void dump_vmcb(struct kvm_vcpu *vcpu)
 diff -ruN linux-5.7.11/arch/x86/kvm/x86.c linux-5.7.11_patched/arch/x86/kvm/x86.c
 --- linux-5.7.11/arch/x86/kvm/x86.c	2020-07-29 10:20:01.000000000 +0200
-+++ linux-5.7.11_patched/arch/x86/kvm/x86.c	2020-08-01 19:58:34.908295369 +0200
++++ linux-5.7.11_patched/arch/x86/kvm/x86.c	2020-08-01 20:12:59.637419348 +0200
 @@ -8203,7 +8203,7 @@
   * exiting to the userspace.  Otherwise, the value will be returned to the
   * userspace.
@@ -77,7 +77,7 @@ diff -ruN linux-5.7.11/arch/x86/kvm/x86.c linux-5.7.11_patched/arch/x86/kvm/x86.
 +
 +	result = vcpu_enter_guest_real(vcpu);
 +
-+	if (vcpu->run->exit_reason == 69) 
++	if (vcpu->run->exit_reason == 123) 
 +	{
 +		differece = rdtsc() - vcpu->last_exit_start;
 +		vcpu->total_exit_time += differece;
