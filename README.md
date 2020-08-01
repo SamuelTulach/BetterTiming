@@ -73,11 +73,11 @@ static int handle_rdtsc_interception(struct vcpu_svm *svm)
 ```
 
 ## Troubleshooting
-**Q:** VM does not seem to boot after the patch!
-**A:** Double check if the patch was applied correctly and that your CPU supports RDTSC instruction.
-**Q:** I am still getting detected by some rootkits!
-**A:** Check that you have CPU pinning enabled and that you have free cores that are not pinned to the VM. In case CPU pinning is already in place, you can try increasing the difference in `vcpu_enter_guest`. Also you might want to specify exit reason for other instructions then just CPUID.
-**Q:** My PC does not boot after applying the patch!
-**A:** The patch does not change anything unless you boot a VM. Please check that you have compiled the kernel with correct settings.
-**Q:** I installed the new kernel, but I can see only blinking cursor!
-**A:** If you have NVIDIA GPU, make sure that the driver did not fuck itself after installation of a custom kernel. If you are on Arch Linux for example, you can use package `nvidia-dkms` to install the proprietary driver.
+- **Q:** VM does not seem to boot after the patch!
+- **A:** Double check if the patch was applied correctly and that your CPU supports RDTSC instruction.
+- **Q:** I am still getting detected by some rootkits!
+- **A:** Check that you have CPU pinning enabled and that you have free cores that are not pinned to the VM. In case CPU pinning is already in place, you can try increasing the difference in `vcpu_enter_guest`. Also you might want to specify exit reason for other instructions then just CPUID.
+- **Q:** My PC does not boot after applying the patch!
+- **A:** The patch does not change anything unless you boot a VM. Please check that you have compiled the kernel with correct settings.
+- **Q:** I installed the new kernel, but I can see only blinking cursor!
+- **A:** If you have NVIDIA GPU, make sure that the driver did not fuck itself after installation of a custom kernel. If you are on Arch Linux for example, you can use package `nvidia-dkms` to install the proprietary driver.
