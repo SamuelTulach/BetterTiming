@@ -12,5 +12,13 @@ wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.7.11.tar.gz
 tar -xf linux-5.7.11.tar.gz
 cd linux-5.7.11
 ```
-
-2.) 
+2.) Download the patch
+```
+git clone https://github.com/SamuelTulach/BetterTiming
+mv BetterTiming/rdtsc_timing.patch rdtsc_timing.patch
+```
+3.) Apply patch
+```
+patch -s -p0 < rdtsc_timing.patch
+```
+4.) Build and install kernel
