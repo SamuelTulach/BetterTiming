@@ -12,3 +12,5 @@ wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.7.11.tar.gz
 tar -xf linux-5.7.11.tar.gz
 cd linux-5.7.11
 ```
+
+2.) 

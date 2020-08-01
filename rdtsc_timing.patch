@@ -1,0 +1,101 @@
+diff -ruN linux-5.7.11/arch/x86/kvm/svm/svm.c linux-5.7.11_patched/arch/x86/kvm/svm/svm.c
+--- linux-5.7.11/arch/x86/kvm/svm/svm.c	2020-07-29 10:20:01.000000000 +0200
++++ linux-5.7.11_patched/arch/x86/kvm/svm/svm.c	2020-08-01 19:47:40.041593665 +0200
+@@ -1041,6 +1041,7 @@
+ 	set_intercept(svm, INTERCEPT_XSETBV);
+ 	set_intercept(svm, INTERCEPT_RDPRU);
+ 	set_intercept(svm, INTERCEPT_RSM);
++	set_intercept(svm, INTERCEPT_RDTSC);
+ 
+ 	if (!kvm_mwait_in_guest(svm->vcpu.kvm)) {
+ 		set_intercept(svm, INTERCEPT_MONITOR);
+@@ -2143,6 +2144,7 @@
+ 
+ static int cpuid_interception(struct vcpu_svm *svm)
+ {
++	svm->vcpu.run->exit_reason = 123;
+ 	return kvm_emulate_cpuid(&svm->vcpu);
+ }
+ 
+@@ -2706,6 +2708,26 @@
+ 	return nop_interception(svm);
+ }
+ 
++static int handle_rdtsc_interception(struct vcpu_svm *svm) 
++{
++	u64 differece;
++	u64 final_time;
++	u64 data;
++	
++	differece = rdtsc() - svm->vcpu.last_exit_start;
++	final_time = svm->vcpu.total_exit_time + differece;
++
++	data = rdtsc() - final_time;
++
++	svm->vcpu.run->exit_reason = 123;
++    svm->vcpu.arch.regs[VCPU_REGS_RAX] = data & -1u;
++    svm->vcpu.arch.regs[VCPU_REGS_RDX] = (data >> 32) & -1u;
++
++    skip_emulated_instruction(&svm->vcpu);
++
++    return 1;
++}
++
+ static int (*const svm_exit_handlers[])(struct vcpu_svm *svm) = {
+ 	[SVM_EXIT_READ_CR0]			= cr_interception,
+ 	[SVM_EXIT_READ_CR3]			= cr_interception,
+@@ -2772,6 +2794,7 @@
+ 	[SVM_EXIT_RSM]                          = rsm_interception,
+ 	[SVM_EXIT_AVIC_INCOMPLETE_IPI]		= avic_incomplete_ipi_interception,
+ 	[SVM_EXIT_AVIC_UNACCELERATED_ACCESS]	= avic_unaccelerated_access_interception,
++	[SVM_EXIT_RDTSC]                = handle_rdtsc_interception,
+ };
+ 
+ static void dump_vmcb(struct kvm_vcpu *vcpu)
+diff -ruN linux-5.7.11/arch/x86/kvm/x86.c linux-5.7.11_patched/arch/x86/kvm/x86.c
+--- linux-5.7.11/arch/x86/kvm/x86.c	2020-07-29 10:20:01.000000000 +0200
++++ linux-5.7.11_patched/arch/x86/kvm/x86.c	2020-08-01 19:47:10.791520307 +0200
+@@ -8203,7 +8203,7 @@
+  * exiting to the userspace.  Otherwise, the value will be returned to the
+  * userspace.
+  */
+-static int vcpu_enter_guest(struct kvm_vcpu *vcpu)
++static int vcpu_enter_guest_real(struct kvm_vcpu *vcpu)
+ {
+ 	int r;
+ 	bool req_int_win =
+@@ -8512,6 +8512,21 @@
+ 	return r;
+ }
+ 
++static int vcpu_enter_guest(struct kvm_vcpu *vcpu) 
++{	
++	vcpu->last_exit_start = rdtsc();
++
++	int result = vcpu_enter_guest_real(vcpu);
++
++	if (vcpu->run->exit_reason == 123) 
++	{
++		u64 differece = rdtsc() - vcpu->last_exit_start;
++		vcpu->total_exit_time += differece;
++	}
++
++	return result;
++}
++
+ static inline int vcpu_block(struct kvm *kvm, struct kvm_vcpu *vcpu)
+ {
+ 	if (!kvm_arch_vcpu_runnable(vcpu) &&
+diff -ruN linux-5.7.11/include/linux/kvm_host.h linux-5.7.11_patched/include/linux/kvm_host.h
+--- linux-5.7.11/include/linux/kvm_host.h	2020-07-29 10:20:01.000000000 +0200
++++ linux-5.7.11_patched/include/linux/kvm_host.h	2020-08-01 19:46:19.278059431 +0200
+@@ -319,6 +319,9 @@
+ 	bool ready;
+ 	struct kvm_vcpu_arch arch;
+ 	struct dentry *debugfs_dentry;
++
++	u64 last_exit_start;
++	u64 total_exit_time;
+ };
+ 
+ static inline int kvm_vcpu_exiting_guest_mode(struct kvm_vcpu *vcpu)
