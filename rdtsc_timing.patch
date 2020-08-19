@@ -1,7 +1,7 @@
-diff -ruN linux-5.7.11/arch/x86/kvm/svm/svm.c linux-5.7.11_patched/arch/x86/kvm/svm/svm.c
---- linux-5.7.11/arch/x86/kvm/svm/svm.c	2020-07-29 10:20:01.000000000 +0200
-+++ linux-5.7.11_patched/arch/x86/kvm/svm/svm.c	2020-08-01 19:58:49.758132112 +0200
-@@ -1041,6 +1041,7 @@
+diff --color -ruN ./linux-5.8.1/arch/x86/kvm/svm/svm.c ./linux-5.8.1_patched/arch/x86/kvm/svm/svm.c
+--- ./linux-5.8.1/arch/x86/kvm/svm/svm.c	2020-08-11 09:48:12.000000000 -0400
++++ ./linux-5.8.1_patched/arch/x86/kvm/svm/svm.c	2020-08-17 01:43:49.932519654 -0400
+@@ -1026,6 +1026,7 @@
  	set_intercept(svm, INTERCEPT_XSETBV);
  	set_intercept(svm, INTERCEPT_RDPRU);
  	set_intercept(svm, INTERCEPT_RSM);
@@ -9,7 +9,7 @@ diff -ruN linux-5.7.11/arch/x86/kvm/svm/svm.c linux-5.7.11_patched/arch/x86/kvm/
  
  	if (!kvm_mwait_in_guest(svm->vcpu.kvm)) {
  		set_intercept(svm, INTERCEPT_MONITOR);
-@@ -2143,6 +2144,7 @@
+@@ -2156,6 +2157,7 @@
  
  static int cpuid_interception(struct vcpu_svm *svm)
  {
@@ -17,45 +17,45 @@ diff -ruN linux-5.7.11/arch/x86/kvm/svm/svm.c linux-5.7.11_patched/arch/x86/kvm/
  	return kvm_emulate_cpuid(&svm->vcpu);
  }
  
-@@ -2706,6 +2708,26 @@
+@@ -2717,6 +2719,26 @@
  	return nop_interception(svm);
  }
  
-+static int handle_rdtsc_interception(struct vcpu_svm *svm) 
++static int handle_rdtsc_interception(struct vcpu_svm *svm)
 +{
 +	u64 differece;
 +	u64 final_time;
 +	u64 data;
-+	
++
 +	differece = rdtsc() - svm->vcpu.last_exit_start;
 +	final_time = svm->vcpu.total_exit_time + differece;
 +
 +	data = rdtsc() - final_time;
 +
 +	svm->vcpu.run->exit_reason = 123;
-+    svm->vcpu.arch.regs[VCPU_REGS_RAX] = data & -1u;
-+    svm->vcpu.arch.regs[VCPU_REGS_RDX] = (data >> 32) & -1u;
++	svm->vcpu.arch.regs[VCPU_REGS_RAX] = data & -1u;
++	svm->vcpu.arch.regs[VCPU_REGS_RDX] = (data >> 32) & -1u;
 +
-+    skip_emulated_instruction(&svm->vcpu);
++	skip_emulated_instruction(&svm->vcpu);
 +
-+    return 1;
++	return 1;
 +}
 +
  static int (*const svm_exit_handlers[])(struct vcpu_svm *svm) = {
  	[SVM_EXIT_READ_CR0]			= cr_interception,
  	[SVM_EXIT_READ_CR3]			= cr_interception,
-@@ -2772,6 +2794,7 @@
+@@ -2783,6 +2805,7 @@
  	[SVM_EXIT_RSM]                          = rsm_interception,
  	[SVM_EXIT_AVIC_INCOMPLETE_IPI]		= avic_incomplete_ipi_interception,
  	[SVM_EXIT_AVIC_UNACCELERATED_ACCESS]	= avic_unaccelerated_access_interception,
-+	[SVM_EXIT_RDTSC]                = handle_rdtsc_interception,
++	[SVM_EXIT_RDTSC]                	= handle_rdtsc_interception,
  };
  
  static void dump_vmcb(struct kvm_vcpu *vcpu)
-diff -ruN linux-5.7.11/arch/x86/kvm/x86.c linux-5.7.11_patched/arch/x86/kvm/x86.c
---- linux-5.7.11/arch/x86/kvm/x86.c	2020-07-29 10:20:01.000000000 +0200
-+++ linux-5.7.11_patched/arch/x86/kvm/x86.c	2020-08-01 20:12:59.637419348 +0200
-@@ -8203,7 +8203,7 @@
+diff --color -ruN ./linux-5.8.1/arch/x86/kvm/x86.c ./linux-5.8.1_patched/arch/x86/kvm/x86.c
+--- ./linux-5.8.1/arch/x86/kvm/x86.c	2020-08-11 09:48:12.000000000 -0400
++++ ./linux-5.8.1_patched/arch/x86/kvm/x86.c	2020-08-17 01:46:13.402520753 -0400
+@@ -8311,7 +8311,7 @@
   * exiting to the userspace.  Otherwise, the value will be returned to the
   * userspace.
   */
@@ -64,7 +64,7 @@ diff -ruN linux-5.7.11/arch/x86/kvm/x86.c linux-5.7.11_patched/arch/x86/kvm/x86.
  {
  	int r;
  	bool req_int_win =
-@@ -8512,6 +8512,24 @@
+@@ -8609,6 +8609,24 @@
  	return r;
  }
  
@@ -89,14 +89,14 @@ diff -ruN linux-5.7.11/arch/x86/kvm/x86.c linux-5.7.11_patched/arch/x86/kvm/x86.
  static inline int vcpu_block(struct kvm *kvm, struct kvm_vcpu *vcpu)
  {
  	if (!kvm_arch_vcpu_runnable(vcpu) &&
-diff -ruN linux-5.7.11/include/linux/kvm_host.h linux-5.7.11_patched/include/linux/kvm_host.h
---- linux-5.7.11/include/linux/kvm_host.h	2020-07-29 10:20:01.000000000 +0200
-+++ linux-5.7.11_patched/include/linux/kvm_host.h	2020-08-01 19:46:19.278059431 +0200
+diff --color -ruN ./linux-5.8.1/include/linux/kvm_host.h ./linux-5.8.1_patched/include/linux/kvm_host.h
+--- ./linux-5.8.1/include/linux/kvm_host.h	2020-08-11 09:48:12.000000000 -0400
++++ ./linux-5.8.1_patched/include/linux/kvm_host.h	2020-08-17 01:49:16.262522154 -0400
 @@ -319,6 +319,9 @@
+ 	bool preempted;
  	bool ready;
  	struct kvm_vcpu_arch arch;
- 	struct dentry *debugfs_dentry;
-+
++	
 +	u64 last_exit_start;
 +	u64 total_exit_time;
  };
