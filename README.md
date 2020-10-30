@@ -1,5 +1,5 @@
 # BetterTiming
-This is a small project of mine aiming to improve CPU timing in KVM SVM implementation to bypass certain anti-VM checks. It registers VM-exit for RDTSC instruction plus edits MSR_IA32_TSC and then tries to offset it by the time spend in specified VM-exits.
+This is a small project of mine aiming to improve CPU timing in KVM SVM implementation to bypass certain anti-VM checks. It saves vm-exit times and then uses them to offest TSC.
 
 ![screenshot](screenshot.png)
 *[Pafish](https://github.com/a0rtega/pafish) passing CPU timing checks*
@@ -88,6 +88,7 @@ case MSR_IA32_TSC: {
 	break;
 }
 ```
+Then added custom exit reason to other instruction with unconditional exit reason (such as INVD and XSETBV).
 
 ## Troubleshooting
 - **Q:** VM does not seem to boot after the patch!

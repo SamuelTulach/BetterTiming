@@ -1,6 +1,6 @@
 diff -ruN linux-5.9.2/arch/x86/kvm/svm/svm.c linux-5.9.2-patch/arch/x86/kvm/svm/svm.c
 --- linux-5.9.2/arch/x86/kvm/svm/svm.c	2020-10-29 10:12:22.000000000 +0100
-+++ linux-5.9.2-patch/arch/x86/kvm/svm/svm.c	2020-10-30 21:41:31.572153531 +0100
++++ linux-5.9.2-patch/arch/x86/kvm/svm/svm.c	2020-10-30 22:38:08.893100407 +0100
 @@ -1041,6 +1041,7 @@
  	svm_set_intercept(svm, INTERCEPT_XSETBV);
  	svm_set_intercept(svm, INTERCEPT_RDPRU);
@@ -9,7 +9,25 @@ diff -ruN linux-5.9.2/arch/x86/kvm/svm/svm.c linux-5.9.2-patch/arch/x86/kvm/svm/
  
  	if (!kvm_mwait_in_guest(svm->vcpu.kvm)) {
  		svm_set_intercept(svm, INTERCEPT_MONITOR);
-@@ -2170,6 +2171,7 @@
+@@ -2083,6 +2084,8 @@
+ 
+ static int wbinvd_interception(struct vcpu_svm *svm)
+ {
++	svm->vcpu.run->exit_reason = 123;
++	
+ 	return kvm_emulate_wbinvd(&svm->vcpu);
+ }
+ 
+@@ -2091,6 +2094,8 @@
+ 	u64 new_bv = kvm_read_edx_eax(&svm->vcpu);
+ 	u32 index = kvm_rcx_read(&svm->vcpu);
+ 
++	svm->vcpu.run->exit_reason = 123;
++
+ 	if (kvm_set_xcr(&svm->vcpu, index, new_bv) == 0) {
+ 		return kvm_skip_emulated_instruction(&svm->vcpu);
+ 	}
+@@ -2170,6 +2175,7 @@
  
  static int cpuid_interception(struct vcpu_svm *svm)
  {
@@ -17,7 +35,16 @@ diff -ruN linux-5.9.2/arch/x86/kvm/svm/svm.c linux-5.9.2-patch/arch/x86/kvm/svm/
  	return kvm_emulate_cpuid(&svm->vcpu);
  }
  
-@@ -2739,6 +2741,24 @@
+@@ -2185,6 +2191,8 @@
+ 
+ static int invd_interception(struct vcpu_svm *svm)
+ {
++	svm->vcpu.run->exit_reason = 123;
++	
+ 	/* Treat an INVD instruction as a NOP and just skip it. */
+ 	return kvm_skip_emulated_instruction(&svm->vcpu);
+ }
+@@ -2739,6 +2747,24 @@
  	return nop_interception(svm);
  }
  
@@ -42,7 +69,7 @@ diff -ruN linux-5.9.2/arch/x86/kvm/svm/svm.c linux-5.9.2-patch/arch/x86/kvm/svm/
  static int (*const svm_exit_handlers[])(struct vcpu_svm *svm) = {
  	[SVM_EXIT_READ_CR0]			= cr_interception,
  	[SVM_EXIT_READ_CR3]			= cr_interception,
-@@ -2805,6 +2825,7 @@
+@@ -2805,6 +2831,7 @@
  	[SVM_EXIT_RSM]                          = rsm_interception,
  	[SVM_EXIT_AVIC_INCOMPLETE_IPI]		= avic_incomplete_ipi_interception,
  	[SVM_EXIT_AVIC_UNACCELERATED_ACCESS]	= avic_unaccelerated_access_interception,
