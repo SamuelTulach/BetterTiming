@@ -1,5 +1,5 @@
 # BetterTiming
-This is a small project of mine aiming to improve CPU timing in KVM SVM implementation to bypass certain anti-VM checks. It registers VM-exit for RDTSC instruction and then tries to offset it by the time spend in specified VM-exits.
+This is a small project of mine aiming to improve CPU timing in KVM SVM implementation to bypass certain anti-VM checks. It registers VM-exit for RDTSC instruction plus edits MSR_IA32_TSC and then tries to offset it by the time spend in specified VM-exits.
 
 ![screenshot](screenshot.png)
 *[Pafish](https://github.com/a0rtega/pafish) passing CPU timing checks*
@@ -13,18 +13,18 @@ You will need to recompile Linux kernel from source. If you are on a distributio
 
 1.) Download and extract kernel source
 ```
-wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.7.11.tar.gz
-tar -xf linux-5.7.11.tar.gz
-cd linux-5.7.11
+wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.9.2.tar.xz
+tar -xf linux-5.9.2.tar.xz
+cd linux-5.9.2
 ```
 2.) Download the patch
 ```
 git clone https://github.com/SamuelTulach/BetterTiming
-mv BetterTiming/rdtsc_timing.patch rdtsc_timing.patch
+mv BetterTiming/timing.patch timing.patch
 ```
 3.) Apply patch
 ```
-patch -s -p0 < rdtsc_timing.patch
+patch -s -p0 < timing.patch
 ```
 4.) Build and install the kernel
 
@@ -74,6 +74,18 @@ static int handle_rdtsc_interception(struct vcpu_svm *svm)
 	skip_emulated_instruction(&svm->vcpu);
 
 	return 1;
+}
+```
+And of course modified `kvm_get_msr_common` to also utilise this patch.
+```
+case MSR_IA32_TSC: {
+	differece = rdtsc() - vcpu->last_exit_start;
+	final_time = vcpu->total_exit_time + differece;
+
+	msr_info->data = rdtsc() - final_time;
+
+	vcpu->run->exit_reason = 123;
+	break;
 }
 ```
 
