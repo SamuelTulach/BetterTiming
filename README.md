@@ -2,6 +2,9 @@
 This is a small project of mine aiming to improve CPU timing in KVM SVM implementation to bypass certain anti-VM checks. It registers VM-exit for RDTSC instruction and then tries to offset it by the time spend in specified VM-exits.
 
 ![screenshot](screenshot.png)
+*[Pafish](https://github.com/a0rtega/pafish) passing CPU timing checks*
+![screenshot2](screenshot2.png)
+*[vmcheck kernel-mode driver](https://github.com/SamuelTulach/vmcheck) passing checks*
 
 **Disclaimer:** Testing was done only in an isolated environment. Doing such a change might introduce unwanted side effects to the guest OS.
 
